@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+    Prevent environment variable values with dangerous metacharacters from being passed to Windows batch build steps.
+</div>

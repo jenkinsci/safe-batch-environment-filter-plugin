@@ -1,0 +1,31 @@
+<div>
+    The action to take when unsafe characters are detected.<p>
+
+    <dl>
+        <dt>Fail the build step</dt><!-- keep aligned with UI label -->
+        <dd>
+            <p>Forces the build step (and likely the job) to fail if any dangerous character is detected in any variable value. This is the <strong>safest</strong> option.</p>
+            <p>
+                This option can result in builds failing despite Windows Batch build steps not even using the potentially unsafe variables.
+                To prevent that, combine this global option with the option <em>Only Keep Specified Environment Variables</em> of individual build steps.
+                This way, only environment variables the build step actually needs would be passed to it, and unsafe values in any others would not cause the build step to fail.
+            </p>
+        </dd>
+
+        <dt>Redact unsafe values</dt><!-- keep aligned with UI label -->
+        <dd>
+            <p>Replaces each environment variable value identified as unsafe with the value <code>REDACTED</code>.</p>
+            <p>This prevents command execution via environment variables,
+                but it can result in unexpected behavior in scripts making use of affected environment variables.</p>
+        </dd>
+
+        <dt>Log warning only</dt><!-- keep aligned with UI label -->
+        <dd>
+            <p>Print a warning about the presence of unsafe environment variable values to the build and system logs.</p>
+            <p>
+                This provides <strong>no protection</strong> from unsafe environment variable values being used in Windows Batch build steps,
+                but helps you understand the impact of enabling a safer option.
+            </p>
+        </dd>
+    </dl>
+</div>

@@ -1,0 +1,10 @@
+<div>
+    <p>Detects content in environment variables defined or modified inside Jenkins that could result in code execution in Windows batch scripts referencing those environment variables.
+        <a href="https://jenkins.io/redirect/environment-variable-sanitization" target="_blank">Learn more.</a>
+    </p>
+
+    <p>If an unsafe environment variable is detected, and its value is different from that provided to the Jenkins process,
+        the specified action is taken. This action ranges from only logging a warning (unsafe) to failing the Windows batch build step before it would execute the script.<p>
+
+    <p>Environment variable values containing any of the following characters are considered unsafe: <code>|^&amp;%"&lt;&gt;</code></p>
+</div>

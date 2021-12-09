@@ -1,0 +1,109 @@
+= Safe Batch Environment Filter Plugin
+
+Jenkins typically provides build parameters to build steps in the form of environment variables.
+The way that Windows Batch interprets such environment variables can result in unexpected outcomes, including security issues, in some Batch scripts.
+This plugin provides a way for admins to significantly reduce the risk of such unsafe uses of Windows Batch occurring on a Jenkins instance.
+
+== The problem with Batch
+
+Windows Batch scripts _evaluate_ environment variable references.
+This means that, depending on the Batch script, even simple commands like the following are unsafe:
+
+[listing]
+echo "%ENVVAR%"
+
+In this example, `ENVVAR` could be a build parameter, or contributed by a plugin from sources outside Jenkins' control.
+Its value could be something like the following:
+
+[listing]
+" & set & dir c:\users & echo & net localgroup administrators & whoami & echo "too late
+
+Executing the script will result in the execution of the commands listed in the variable value, producing output similar to the following:
+
+[listing]
+----
+""
+ALLUSERSPROFILE=C:\ProgramData
+APPDATA=C:\Users\XXX\AppData\Roaming
+BUILD_DISPLAY_NAME=#2
+BUILD_ID=2
+[...]
+Volume in drive C has no label.
+Volume Serial Number is XXXX-XXXX
+[...]
+"too late"
+----
+
+For more information see https://threatpost.com/shellshock-like-weakness-may-affect-windows/108696/[this article].
+
+
+== How this plugin works
+
+Jenkins 2.248 and newer, LTS 2.249.1 and newer support build-step specific environment variable filtering (https://issues.jenkins-ci.org/browse/JENKINS-62014[JENKINS-62014]).
+
+This plugin adds a globally configurable filter *Prevent unsafe variables in Windows batch scripts*.
+It prevents Windows Batch build steps from executing successfully if the environment variables passed to it look unsafe.
+To accomplish this, it offers the following modes to allow control over script behavior:
+
+. *Fail the build step* is the safest mode.
+If a Batch build step is about to start, and an environment variable has an unsafe value that is not the default value defined outside Jenkins, the build step will instead simply fail.
+. *Replace unsafe values* will replace the value of variables identified to have unsafe values with a fixed value that does not result in command execution: `REDACTED`.
+Note that this can result in unexpected behavior, and is therefore not as safe as the first option.
+. *Only log warning* will only log a warning message when an unsafe environment variable value is encountered, but otherwise will pass it on to the build step.
+This option is unsafe, as it will not prevent command execution at all.
+
+The behavior selected for *Prevent unsafe variables in Windows batch scripts* here is the one applied to `bat` steps in pipeline as well.
+
+*Prevent unsafe variables in Windows batch scripts* also allows specifying which jobs the rule should _not_ apply to.
+The goal of this feature is to make it easier to migrate larger instances with legitimate sources of potentially unsafe environment variables for some jobs to a safe set of global rules, while not preventing build execution.
+To accomplish this, it's possible to specify any number of the following for a given *Prevent unsafe variables in Windows batch scripts* rule:
+
+* *Exclude Specific Job* allows naming one job that the rule should not be applied to.
+* *Exclude Jobs Matching Regular Expression* can be used to specify jobs by regular expression. Any job matching the regular expression will be excluded. `System/.+` will exclude all jobs in a top-level folder named _System_. `.*` will result in the rule not being applied to any job, as if it weren't set.
+
+
+=== Job-specific configuration
+
+It is possible to configure build environment modification on a per-build step basis.
+Local rules are applied before the global rules.
+This allows for strict system-wide defaults without failing every build step because something unforeseen is contributed to the environment.
+
+Jenkins includes a filter called *Only Keep Specified Environment Variables* that will remove all environment variables not explicitly listed.
+This does not apply to system-level environment variables like `PATH` or `USER`.
+If these contain unsafe content that was contributed by Jenkins, they will be reset to their defaults as defined outside Jenkins.
+
+
+=== Securing pipelines
+
+Pipelines can have the same problems of various sources providing unsafe environment variables.
+For this reason, *Prevent unsafe variables in Windows batch scripts* is also applied to `bat` steps in pipelines.
+
+NOTE: This requires https://plugins.jenkins.io/workflow-durable-task-step/[Pipeline: Nodes and Processes] Plugin 2.36 or newer.
+
+The `keepEnv` step added in https://plugins.jenkins.io/pipeline-keepenv-step/[Pipeline: Keep Environment Step] can be used to filter environment variables similar to how *Only Keep Specified Environment Variables* can be used in freestyle project build steps:
+`keepEnv` accepts a list of environment variable names.
+Only these environment variables are passed to steps in the block, in addition to system-level variables like `PATH`.
+If system-level variables have been customized however, and contain values considered unsafe, then they are reset to the values defined outside Jenkins.
+Any other environment variables will not be available inside the block.
+
+[listing]
+----
+keepEnv(['PATH', 'M2_HOME']) { // <1>
+  bat '...'
+}
+keepEnv(['M2_HOME']) { // <2>
+  bat '...'
+}
+----
+<1> PATH exists outside Jenkins, but this retains changes to it due to environment variable definitions in Jenkins configuration.
+<2> PATH exists outside Jenkins, so this results in it being reset to that value.
+
+
+== Alternative options
+
+This plugin is intended primarily for Jenkins instances whose administrators do not have complete control over all build scripts.
+In situations with more control over build scripts, alternative options exist.
+
+=== Use EnableDelayedExpansion
+
+Windows Batch scripts should be written with `EnableDelayedExpansion` and the use of `!var!` instead of `%var%`.
