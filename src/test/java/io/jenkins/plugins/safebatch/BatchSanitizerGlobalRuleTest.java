@@ -23,6 +23,9 @@
  */
 package io.jenkins.plugins.safebatch;
 
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+
 import hudson.Functions;
 import hudson.model.Build;
 import hudson.model.Cause;
@@ -39,9 +42,6 @@ import jenkins.tasks.filters.EnvVarsFilterGlobalConfiguration;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 public class BatchSanitizerGlobalRuleTest {
 
@@ -61,27 +61,33 @@ public class BatchSanitizerGlobalRuleTest {
         BatchFile batch = new BatchFile("echo \"begin %what% %who% end\"");
         p.getBuildersList().add(batch);
         p.addProperty(new ParametersDefinitionProperty(
-                new StringParameterDefinition("what", "Hello"),
-                new StringParameterDefinition("who", "World")
-        ));
+                new StringParameterDefinition("what", "Hello"), new StringParameterDefinition("who", "World")));
 
-        {// with dangerous characters => remove them
-            FreeStyleBuild build = j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, (Cause) null, new ParametersAction(
-                    new StringParameterValue("what", "hello"),
-                    new StringParameterValue("who", "begin\" & dir \"../../\" & echo \"end")
-            )));
+        { // with dangerous characters => remove them
+            FreeStyleBuild build = j.assertBuildStatus(
+                    Result.SUCCESS,
+                    p.scheduleBuild2(
+                            0,
+                            (Cause) null,
+                            new ParametersAction(
+                                    new StringParameterValue("what", "hello"),
+                                    new StringParameterValue("who", "begin\" & dir \"../../\" & echo \"end"))));
 
             assertContainsSequentially(build, "begin hello REDACTED end");
         }
-        {// with dangerous characters but job is excluded
+        { // with dangerous characters but job is excluded
             ExactJobFullNameRunMatcher matcher = new ExactJobFullNameRunMatcher();
             matcher.setName("job for test");
             globalRule.getJobExclusionList().add(matcher);
 
-            FreeStyleBuild build = j.assertBuildStatus(Result.SUCCESS, p.scheduleBuild2(0, (Cause) null, new ParametersAction(
-                    new StringParameterValue("what", "hello"),
-                    new StringParameterValue("who", "100%")
-            )));
+            FreeStyleBuild build = j.assertBuildStatus(
+                    Result.SUCCESS,
+                    p.scheduleBuild2(
+                            0,
+                            (Cause) null,
+                            new ParametersAction(
+                                    new StringParameterValue("what", "hello"),
+                                    new StringParameterValue("who", "100%"))));
 
             assertContainsSequentially(build, "begin hello 100% end");
         }
