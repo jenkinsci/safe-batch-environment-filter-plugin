@@ -23,7 +23,6 @@
  */
 package io.jenkins.plugins.safebatch;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -60,7 +59,6 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
     // Ideally we would figure out a better way to filter safe/unsafe env vars in batch than just presence of specific
     // characters
     // Unfortunately, https://ss64.com/nt/syntax-esc.html#escape seems too complex without knowing the script
-    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Accessible via System Groovy Scripts")
     private static String DANGEROUS_CHARACTERS =
             System.getProperty(BatchSanitizerGlobalRule.class.getName() + ".DANGEROUS_CHARACTERS", "|^&%\"<>");
 
