@@ -23,7 +23,6 @@
  */
 package io.jenkins.plugins.safebatch;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -32,6 +31,13 @@ import hudson.model.Descriptor;
 import hudson.model.Run;
 import hudson.tasks.BatchFile;
 import io.jenkins.plugins.environment_filter_utils.matchers.run.RunMatcher;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import jenkins.tasks.filters.EnvVarsFilterException;
 import jenkins.tasks.filters.EnvVarsFilterGlobalRule;
@@ -42,14 +48,6 @@ import org.jvnet.localizer.Localizable;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * Global rule to filter freestyle Windows Batch step and also pipeline's one
  * It will be triggered on dangerous characters present in variable's value.
@@ -58,12 +56,11 @@ import java.util.logging.Logger;
 public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
     private static final Logger LOGGER = Logger.getLogger(BatchSanitizerGlobalRule.class.getName());
 
-    // Ideally we would figure out a better way to filter safe/unsafe env vars in batch than just presence of specific characters
+    // Ideally we would figure out a better way to filter safe/unsafe env vars in batch than just presence of specific
+    // characters
     // Unfortunately, https://ss64.com/nt/syntax-esc.html#escape seems too complex without knowing the script
-    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Accessible via System Groovy Scripts")
-    private static String DANGEROUS_CHARACTERS = System.getProperty(
-            BatchSanitizerGlobalRule.class.getName() + ".DANGEROUS_CHARACTERS",
-            "|^&%\"<>");
+    private static String DANGEROUS_CHARACTERS =
+            System.getProperty(BatchSanitizerGlobalRule.class.getName() + ".DANGEROUS_CHARACTERS", "|^&%\"<>");
 
     private EnvironmentSanitizerStandardMode mode = EnvironmentSanitizerStandardMode.FAIL;
 
@@ -99,19 +96,26 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
         if (run != null) {
             boolean isExcluded = jobExclusionList.stream().anyMatch(jobExclusion -> jobExclusion.test(run));
             if (isExcluded) {
-                LOGGER.log(Level.CONFIG, "Not applicable because the job {0} is excluded.", run.getParent().getFullName());
+                LOGGER.log(
+                        Level.CONFIG,
+                        "Not applicable because the job {0} is excluded.",
+                        run.getParent().getFullName());
                 return false;
             }
         }
 
-        return builder instanceof BatchFile ||
+        return builder instanceof BatchFile
+                ||
                 // to support workflow-durable-task-step without requiring a dependency
-                //builder.getClass().getName().equals("org.jenkinsci.plugins.durabletask.WindowsBatchScript");
-                builder.getClass().getName().equals("org.jenkinsci.plugins.workflow.steps.durable_task.BatchScriptStep");
+                // builder.getClass().getName().equals("org.jenkinsci.plugins.durabletask.WindowsBatchScript");
+                builder.getClass()
+                        .getName()
+                        .equals("org.jenkinsci.plugins.workflow.steps.durable_task.BatchScriptStep");
     }
 
     @Override
-    public void filter(@Nonnull EnvVars envVars, @Nonnull EnvVarsFilterRuleContext context) throws EnvVarsFilterException {
+    public void filter(@Nonnull EnvVars envVars, @Nonnull EnvVarsFilterRuleContext context)
+            throws EnvVarsFilterException {
         String dangerousCharactersString = DANGEROUS_CHARACTERS;
         if (StringUtils.isBlank(dangerousCharactersString)) {
             return;
@@ -121,8 +125,12 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
         analyzeVariables(dangerousCharactersArray, envVars, mode, context);
     }
 
-    private void analyzeVariables(String[] dangerousCharacters, EnvVars envVars, EnvironmentSanitizerStandardMode mode,
-                                  @Nonnull EnvVarsFilterRuleContext context) throws EnvVarsFilterException {
+    private void analyzeVariables(
+            String[] dangerousCharacters,
+            EnvVars envVars,
+            EnvironmentSanitizerStandardMode mode,
+            @Nonnull EnvVarsFilterRuleContext context)
+            throws EnvVarsFilterException {
         // this code is executed on the agent, retrieving agent's system env. variables
         Map<String, String> systemEnvVars = EnvVars.masterEnvVars;
 
@@ -135,17 +143,24 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
             if (systemValue == null || !systemValue.equals(variableValue)) {
                 analyzeSingleVariable(dangerousCharacters, envVars, mode, context, variableName, variableValue);
             }
-            //otherwise we have a system variable that is not modified, we ignore it
+            // otherwise we have a system variable that is not modified, we ignore it
         }
     }
 
-    private void analyzeSingleVariable(String[] dangerousCharacters, EnvVars envVars, EnvironmentSanitizerStandardMode mode,
-                                       @Nonnull EnvVarsFilterRuleContext context, String variableName, String variableValue) throws EnvVarsFilterException {
+    private void analyzeSingleVariable(
+            String[] dangerousCharacters,
+            EnvVars envVars,
+            EnvironmentSanitizerStandardMode mode,
+            @Nonnull EnvVarsFilterRuleContext context,
+            String variableName,
+            String variableValue)
+            throws EnvVarsFilterException {
         boolean done = false;
         for (int i = 0; i < dangerousCharacters.length && !done; i++) {
             String dangerousCharacter = dangerousCharacters[i];
             if (variableValue.contains(dangerousCharacter)) {
-                done = mode.actOnDangerousVariable(this, envVars, variableName, variableValue, dangerousCharacter, context);
+                done = mode.actOnDangerousVariable(
+                        this, envVars, variableName, variableValue, dangerousCharacter, context);
             }
         }
     }
@@ -179,16 +194,22 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
          */
         FAIL(Messages._DangerousCharacterMode_FAIL()) {
             @Override
-            public boolean actOnDangerousVariable(BatchSanitizerGlobalRule rule, EnvVars envVars,
-                                                  String variableName, String variableValue,
-                                                  String dangerousCharacter, EnvVarsFilterRuleContext context
-            ) throws EnvVarsFilterException {
-                jobAndSystemLog(String.format("%s: Unsafe environment variable %s: Metacharacter [%s] present, failing this build step",
-                        rule.getDescriptor().getDisplayName(),
-                        variableName,
-                        dangerousCharacter
-                ), context, Level.FINE);
-                throw new EnvVarsFilterException("Failing the build step").withVariable(variableName) // TODO i18n
+            public boolean actOnDangerousVariable(
+                    BatchSanitizerGlobalRule rule,
+                    EnvVars envVars,
+                    String variableName,
+                    String variableValue,
+                    String dangerousCharacter,
+                    EnvVarsFilterRuleContext context)
+                    throws EnvVarsFilterException {
+                jobAndSystemLog(
+                        String.format(
+                                "%s: Unsafe environment variable %s: Metacharacter [%s] present, failing this build step",
+                                rule.getDescriptor().getDisplayName(), variableName, dangerousCharacter),
+                        context,
+                        Level.FINE);
+                throw new EnvVarsFilterException("Failing the build step")
+                        .withVariable(variableName) // TODO i18n
                         .withRule(rule);
             }
         },
@@ -197,16 +218,21 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
          */
         REPLACE(Messages._DangerousCharacterMode_REPLACE()) {
             @Override
-            public boolean actOnDangerousVariable(BatchSanitizerGlobalRule rule, EnvVars envVars,
-                                                  String variableName, String variableValue,
-                                                  String dangerousCharacter, EnvVarsFilterRuleContext context) {
+            public boolean actOnDangerousVariable(
+                    BatchSanitizerGlobalRule rule,
+                    EnvVars envVars,
+                    String variableName,
+                    String variableValue,
+                    String dangerousCharacter,
+                    EnvVarsFilterRuleContext context) {
                 envVars.put(variableName, "REDACTED");
 
-                jobAndSystemLog(String.format("%s: Unsafe environment variable %s: Metacharacter [%s] present, replaced value with: REDACTED",
-                        rule.getDescriptor().getDisplayName(),
-                        variableName,
-                        dangerousCharacter
-                ), context, Level.FINE);
+                jobAndSystemLog(
+                        String.format(
+                                "%s: Unsafe environment variable %s: Metacharacter [%s] present, replaced value with: REDACTED",
+                                rule.getDescriptor().getDisplayName(), variableName, dangerousCharacter),
+                        context,
+                        Level.FINE);
 
                 return true;
             }
@@ -217,14 +243,19 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
          */
         WARN(Messages._DangerousCharacterMode_WARN()) {
             @Override
-            public boolean actOnDangerousVariable(BatchSanitizerGlobalRule rule, EnvVars envVars,
-                                                  String variableName, String variableValue,
-                                                  String dangerousCharacter, EnvVarsFilterRuleContext context) {
-                jobAndSystemLog(String.format("%s: Unsafe environment variable %s: Metacharacter [%s] present",
-                        rule.getDescriptor().getDisplayName(),
-                        variableName,
-                        dangerousCharacter
-                ), context, Level.WARNING);
+            public boolean actOnDangerousVariable(
+                    BatchSanitizerGlobalRule rule,
+                    EnvVars envVars,
+                    String variableName,
+                    String variableValue,
+                    String dangerousCharacter,
+                    EnvVarsFilterRuleContext context) {
+                jobAndSystemLog(
+                        String.format(
+                                "%s: Unsafe environment variable %s: Metacharacter [%s] present",
+                                rule.getDescriptor().getDisplayName(), variableName, dangerousCharacter),
+                        context,
+                        Level.WARNING);
 
                 return false;
             }
@@ -244,12 +275,16 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
          * @return true if there is no need to go further with the dangerous characters
          */
         public abstract boolean actOnDangerousVariable(
-                BatchSanitizerGlobalRule rule, EnvVars envVars,
-                String variableName, String variableValue,
-                String dangerousCharacter, EnvVarsFilterRuleContext context
-        ) throws EnvVarsFilterException;
+                BatchSanitizerGlobalRule rule,
+                EnvVars envVars,
+                String variableName,
+                String variableValue,
+                String dangerousCharacter,
+                EnvVarsFilterRuleContext context)
+                throws EnvVarsFilterException;
 
-        private static void jobAndSystemLog(@Nonnull String message, @Nonnull EnvVarsFilterRuleContext context, @Nonnull Level level) {
+        private static void jobAndSystemLog(
+                @Nonnull String message, @Nonnull EnvVarsFilterRuleContext context, @Nonnull Level level) {
             context.getTaskListener().getLogger().println(message);
             LOGGER.log(level, message);
         }

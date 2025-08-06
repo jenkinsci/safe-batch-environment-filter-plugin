@@ -1,59 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>plugin</artifactId>
-        <version>4.31</version>
-        <relativePath />
-    </parent>
-    <groupId>io.jenkins.plugins</groupId>
-    <artifactId>safe-batch-environment-filter</artifactId>
-    <version>${revision}${changelist}</version>
-    <packaging>hpi</packaging>
-    <properties>
-        <revision>0.2</revision>
-        <changelist>-SNAPSHOT</changelist>
-        <jenkins.version>2.249.1</jenkins.version>
-        <java.level>8</java.level>
-        <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
-        <useBeta>true</useBeta>
-    </properties>
-    <name>Safe Batch Environment Filter Plugin</name>
-
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>https://opensource.org/licenses/MIT</url>
-        </license>
-    </licenses>
-
-    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    <scm>
-        <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
-        <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
-        <url>https://github.com/${gitHubRepo}</url>
-      <tag>HEAD</tag>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>5.18</version>
+    <relativePath />
+  </parent>
+  <groupId>io.jenkins.plugins</groupId>
+  <artifactId>safe-batch-environment-filter</artifactId>
+  <version>${revision}${changelist}</version>
+  <packaging>hpi</packaging>
+  <name>Safe Batch Environment Filter Plugin</name>
+  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/${gitHubRepo}</url>
   </scm>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>environment-filter-utils</artifactId>
-            <version>1.1</version>
-        </dependency>
-    </dependencies>
-
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+  <properties>
+    <revision>0.2</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <jenkins.version>2.479.3</jenkins.version>
+    <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
+    <spotless.check.skip>false</spotless.check.skip>
+    <useBeta>true</useBeta>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>environment-filter-utils</artifactId>
+      <version>1.17.vc0054371f4a_f</version>
+    </dependency>
+  </dependencies>
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
 </project>
