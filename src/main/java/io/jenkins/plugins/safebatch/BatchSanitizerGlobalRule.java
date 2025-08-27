@@ -42,7 +42,7 @@ import jenkins.model.Jenkins;
 import jenkins.tasks.filters.EnvVarsFilterException;
 import jenkins.tasks.filters.EnvVarsFilterGlobalRule;
 import jenkins.tasks.filters.EnvVarsFilterRuleContext;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jvnet.localizer.Localizable;
 import org.kohsuke.stapler.DataBoundConstructor;
