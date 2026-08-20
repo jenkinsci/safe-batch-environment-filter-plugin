@@ -116,8 +116,8 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
     public void filter(@Nonnull EnvVars envVars, @Nonnull EnvVarsFilterRuleContext context)
             throws EnvVarsFilterException {
         String dangerousCharactersString = DANGEROUS_CHARACTERS;
-        if ((dangerousCharactersString == null
-                || dangerousCharactersString.trim().isEmpty())) {
+        if (dangerousCharactersString == null
+                || dangerousCharactersString.trim().isEmpty()) {
             return;
         }
 
