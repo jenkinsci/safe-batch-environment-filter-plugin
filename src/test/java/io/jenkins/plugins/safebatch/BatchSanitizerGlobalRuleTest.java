@@ -23,8 +23,8 @@
  */
 package io.jenkins.plugins.safebatch;
 
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import hudson.Functions;
 import hudson.model.Build;
@@ -39,17 +39,15 @@ import hudson.model.StringParameterValue;
 import hudson.tasks.BatchFile;
 import io.jenkins.plugins.environment_filter_utils.matchers.run.ExactJobFullNameRunMatcher;
 import jenkins.tasks.filters.EnvVarsFilterGlobalConfiguration;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class BatchSanitizerGlobalRuleTest {
-
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class BatchSanitizerGlobalRuleTest {
 
     @Test
-    public void globalRule_canBe_ignoreForGivenJobs() throws Exception {
+    void globalRule_canBe_ignoreForGivenJobs(JenkinsRule j) throws Exception {
         assumeTrue(Functions.isWindows());
 
         EnvVarsFilterGlobalConfiguration.getAllActivatedGlobalRules().clear();
