@@ -39,7 +39,6 @@ import hudson.model.StringParameterValue;
 import hudson.tasks.BatchFile;
 import io.jenkins.plugins.environment_filter_utils.matchers.run.ExactJobFullNameRunMatcher;
 import jenkins.tasks.filters.EnvVarsFilterGlobalConfiguration;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
@@ -47,15 +46,8 @@ import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 @WithJenkins
 class BatchSanitizerGlobalRuleTest {
 
-    private JenkinsRule j;
-
-    @BeforeEach
-    void setUp(JenkinsRule rule) {
-        j = rule;
-    }
-
     @Test
-    void globalRule_canBe_ignoreForGivenJobs() throws Exception {
+    void globalRule_canBe_ignoreForGivenJobs(JenkinsRule j) throws Exception {
         assumeTrue(Functions.isWindows());
 
         EnvVarsFilterGlobalConfiguration.getAllActivatedGlobalRules().clear();
