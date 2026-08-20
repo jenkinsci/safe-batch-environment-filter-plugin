@@ -42,7 +42,6 @@ import jenkins.model.Jenkins;
 import jenkins.tasks.filters.EnvVarsFilterException;
 import jenkins.tasks.filters.EnvVarsFilterGlobalRule;
 import jenkins.tasks.filters.EnvVarsFilterRuleContext;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jvnet.localizer.Localizable;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -117,7 +116,8 @@ public class BatchSanitizerGlobalRule implements EnvVarsFilterGlobalRule {
     public void filter(@Nonnull EnvVars envVars, @Nonnull EnvVarsFilterRuleContext context)
             throws EnvVarsFilterException {
         String dangerousCharactersString = DANGEROUS_CHARACTERS;
-        if (StringUtils.isBlank(dangerousCharactersString)) {
+        if (dangerousCharactersString == null
+                || dangerousCharactersString.trim().isEmpty()) {
             return;
         }
 
