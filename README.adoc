@@ -107,3 +107,4 @@ In situations with more control over build scripts, alternative options exist.
 === Use EnableDelayedExpansion
 
 Windows Batch scripts should be written with `EnableDelayedExpansion` and the use of `!var!` instead of `%var%`.
+Thu Aug 27 13:01:52 CEST 2026
